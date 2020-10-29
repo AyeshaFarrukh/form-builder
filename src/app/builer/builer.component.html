@@ -1,0 +1,175 @@
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-4 col-xs-6">
+            <div class="card card-outline-success">
+                <div class="card-header">
+                    Input Items
+                </div>
+                <div class=" scroll-list">
+                    <ul class="list-group">
+                        <li class='list-group-item list-group-item-success' [dragData]='item' [dragClass]='"active"' [draggable]="true" *ngFor='let item of inputItems'>
+                            {{item.name}}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8 col-xs-6">
+            <div class="card card-outline-primary mb-4 height-100" droppable [dragOverClass]='"drag-target-border"' [dragHintClass]='"drag-hint"' (onDrop)='onAnyDrop($event)'>
+                <div class="card-header card-inverse card-primary">Your Form</div>
+                <div class="scroll-list">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div *ngFor='let item of droppedItems' class='m-2'>
+                                <div *ngIf='item.category === "input"'>
+                                  <div *ngIf='item.type != "checkbox"'>
+                                    <label [for]='item.id' >
+                                      {{item.label}}
+                                  </label>
+                                  <div class="input-group">
+                                      <input [type]='item.type' [id]='item.id' [placeholder]="item.placeholder" [ngClass]='{"form-control": item.type === "file" ? false: true }' [name]='item.id'>
+                                      <div class="input-group-append" (click)='removeItem(item)'>
+                                        <span class="input-group-text " style='cursor: pointer;' >x</span>
+                                      </div>
+                                  </div>
+                                </div>
+                                <div *ngIf='item.type == "checkbox"'>
+                                  <label [for]="item.id">
+                                    <input [type]="item.type" [id]='item.id'>
+                                    {{item.label}}
+                                  </label>
+                                </div>
+
+                                </div>
+                                <div *ngIf='item.category === "textarea"'>
+                                    <label [for]='item.id' >{{item.label}}<button class='btn btn-light'><span (click)='removeItem(item)'>x</span></button></label>
+                                    <textarea [name]="item.id" [class]='item.class' [rows]='item.rows' [id]="item.id"></textarea>
+                                </div>
+                                <div *ngIf='item.category === "select"'>
+                                  <label [for]='item.id' >
+                                    {{item.label}}
+                                </label>
+                                <div class="input-group">
+                                    <select [id]='item.id' [class]='item.class' [name]='item.id'>
+                                      <option *ngFor='let v of item.values' [value]="v">{{v}}</option>
+                                    </select>
+                                    <div class="input-group-append" (click)='removeItem(item)'>
+                                      <span class="input-group-text " style='cursor: pointer;' >x</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div *ngIf='item.category === "table"'>
+                                  <table [class]='item.class'>
+                                    <thead>
+                                      <tr>
+                                        <th *ngFor='let it of item.theadValues'>{{it}}</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      <tr *ngFor='let r of item.rows'>
+                                        <td *ngFor='let c of item.cols' contenteditable="true"></td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #template>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left">Set Properties</h4>
+      <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+        <div *ngIf='currentDraggedItem.dragData.category === "input"'>
+            <form #f="ngForm" (ngSubmit)="onSubmit(f)">
+                <fieldset class="form-group">
+                    <label for='label'>Label</label>
+                    <input type="text" class='form-control' name='label' ngModel>
+                </fieldset>
+                <fieldset class="form-group">
+                    <label for='id'>ID</label>
+                    <input type="text"  class='form-control' name='id' ngModel>
+                </fieldset>
+                <fieldset class="form-group" *ngIf='currentDraggedItem.dragData.type != "checkbox"'>
+                    <label>Placeholder</label>
+                    <input type="text" class='form-control' name='placeholder' ngModel>
+                </fieldset>
+                <button type="submit" class="btn btn-success" [disabled]="!f.form.valid">Submit</button>
+            </form>
+        </div>
+        <div *ngIf='currentDraggedItem.dragData.category === "textarea"'>
+            <form #f="ngForm" (ngSubmit)="onSubmit(f)">
+                <fieldset class="form-group">
+                    <label for='label'>Label</label>
+                    <input type="text" class='form-control' name='label' ngModel>
+                </fieldset>
+                <fieldset class="form-group">
+                    <label for='id'>ID</label>
+                    <input type="text"  class='form-control' name='id' ngModel>
+                </fieldset>
+                <fieldset class="form-group">
+                    <label for="rows">Rows</label>
+                    <input type="number" class='form-control' name="rows" ngModel id="rows">
+                </fieldset>
+                <button type="submit" class="btn btn-success" [disabled]="!f.form.valid">Submit</button>
+            </form>
+        </div>
+        <div *ngIf='currentDraggedItem.dragData.category === "select"'>
+          <form #f="ngForm" (ngSubmit)="onSubmit(f)">
+              <fieldset class="form-group">
+                  <label for='label'>Label</label>
+                  <input type="text" class='form-control' name='label' ngModel>
+              </fieldset>
+              <fieldset class="form-group">
+                  <label for='id'>ID</label>
+                  <input type="text"  class='form-control' name='id' ngModel>
+              </fieldset>
+              <fieldset class="form-group">
+                  <label>Drop Down Values</label>
+                  <input type="text" class='form-control' name='placeholder' #selectVal='ngModel' ngModel>
+                  <button class='btn btn-primary mt-4' type="button" (click)='addToDropDown(selectVal);selectVal.reset()'>Add</button>
+                </fieldset>
+              <button type="submit" class="btn btn-success" [disabled]="!f.form.valid">Submit</button>
+          </form>
+          <h5>Dropdown Values</h5>
+          <ul class="list-group mt-4">
+            <li class="list-group-item" *ngFor='let val of selectValues'>{{val}} <span class="float-right" (click)='removeValueFromDropDown(val)'>x</span></li>
+          </ul>
+        </div>
+        <div *ngIf='currentDraggedItem.dragData.category === "table"'>
+          <form #f="ngForm" (ngSubmit)="onSubmit(f)">
+              <fieldset class="form-group">
+                  <label for='label'>Label</label>
+                  <input type="text" class='form-control' name='label' ngModel>
+              </fieldset>
+              <fieldset class="form-group">
+                  <label for='rows'>Rows</label>
+                  <input type="number"  class='form-control' name='rows' ngModel>
+              </fieldset>
+              <fieldset class="form-group">
+                <label for='cols'>Columns</label>
+                <input type="number"  class='form-control' name='cols' ngModel>
+            </fieldset>
+              <fieldset class="form-group">
+                  <label>Table Header Values</label>
+                  <input type="text" class='form-control' name='placeholder' #tHead='ngModel' ngModel>
+                  <button class='btn btn-primary mt-4' type="button" (click)='addToThead(tHead);tHead.reset()'>Add</button>
+                </fieldset>
+              <button type="submit" class="btn btn-success" [disabled]="!f.form.valid">Submit</button>
+          </form>
+          <h5>Table Head Values</h5>
+          <ul class="list-group mt-4">
+            <li class="list-group-item" *ngFor='let val of tableHeadValues'>{{val}} <span class="float-right" (click)='removeValueFromTHead(val)'>x</span></li>
+          </ul>
+        </div>
+    </div>
+</ng-template>
